@@ -9,6 +9,22 @@ $H = $TargetHome
 $DS = "$H\Tools\DeepSeek"
 function Say($m, $c = 'Cyan') { Write-Host $m -ForegroundColor $c }
 
+# Kit-owned files = what updates replace and what backups hold. Never memories, CLAUDE.md, settings.json, ledger, logs.
+function Save-KitBackup($H, $ver, $why) {
+  $DS = "$H\Tools\DeepSeek"
+  $bk = "$DS\backups\v$ver-" + (Get-Date -Format yyyyMMdd-HHmmss)
+  New-Item -ItemType Directory -Force "$bk\ds", "$bk\bin", "$bk\claude" | Out-Null
+  Get-ChildItem "$DS\*" -File -Include *.py, *.json, *.md, *.cmd, *.ps1, VERSION -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -notmatch '^ledger' } | Copy-Item -Destination "$bk\ds" -ErrorAction SilentlyContinue
+  Get-Item "$H\.local\bin\claude-ds.cmd", "$H\.local\bin\deepseek.cmd", "$H\.local\bin\peak.cmd", "$H\.local\bin\deepseek-update.cmd", "$H\.local\bin\deepseek-restore.cmd" -ErrorAction SilentlyContinue |
+    Copy-Item -Destination "$bk\bin" -ErrorAction SilentlyContinue
+  foreach ($d in 'skills\video-summarize', 'agents\log-digest.md', 'commands\updatedeepseek.md', 'commands\backup.md') {
+    if (Test-Path "$H\.claude\$d") { $t = Split-Path "$bk\claude\$d"; New-Item -ItemType Directory -Force $t | Out-Null; Copy-Item "$H\.claude\$d" $t -Recurse -Force }
+  }
+  Set-Content "$bk\INFO.txt" "version=$ver`r`nsaved=$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')`r`nwhy=$why" -Encoding utf8
+  return $bk
+}
+
 if (Test-Path "$DS\kits\kitsrc") { Say "This is the source PC; updates are published from here, not installed." Yellow; return }
 [Net.ServicePointManager]::SecurityProtocol = 'Tls12'
 $tmp = Join-Path $env:TEMP ("dskit-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
@@ -25,25 +41,22 @@ try {
   if ($new -eq $cur -and -not $Force) { Say "Already up to date ($cur)." Green; return }
   Say "Updating $cur -> $new"
 
-  # backup of everything this update replaces
-  $bk = "$DS\dsmode\backup-update-" + (Get-Date -Format yyyyMMdd-HHmmss)
-  New-Item -ItemType Directory -Force $bk, "$bk\bin" | Out-Null
-  Get-ChildItem "$DS\*" -File -Include *.py, *.json, *.md, *.cmd, *.ps1, VERSION -ErrorAction SilentlyContinue |
-    Where-Object { $_.Name -notmatch '^ledger' } | Copy-Item -Destination $bk -ErrorAction SilentlyContinue
-  Copy-Item "$H\.local\bin\claude-ds.cmd", "$H\.local\bin\deepseek.cmd" $bk\bin -ErrorAction SilentlyContinue
+  # full backup of the current kit version (kept forever; restore with /backup or deepseek-restore)
+  $bk = Save-KitBackup $H $cur 'before update'
 
   # install kit-owned files only (never memories, CLAUDE.md, settings.json, ledger, logs, dsmode state)
   $p = "$src\payload"
   New-Item -ItemType Directory -Force $DS, "$H\.local\bin", "$H\.claude" | Out-Null
   Get-ChildItem "$p\Tools\DeepSeek" -File | Copy-Item -Destination $DS -Force
   Copy-Item "$p\bin\*" "$H\.local\bin" -Force
-  foreach ($d in 'skills', 'agents') { if (Test-Path "$p\claude\$d") { Copy-Item "$p\claude\$d" "$H\.claude" -Recurse -Force } }
+  foreach ($d in 'skills', 'agents', 'commands') { if (Test-Path "$p\claude\$d") { Copy-Item "$p\claude\$d" "$H\.claude" -Recurse -Force } }
   Copy-Item "$src\update.ps1", "$src\VERSION" $DS -Force
+  if (Test-Path "$src\restore.ps1") { Copy-Item "$src\restore.ps1" $DS -Force }
 
   # this PC's home folder into the path placeholders
   $hb = $H.TrimEnd('\'); $hf = $hb -replace '\\', '/'
   $utf8 = New-Object System.Text.UTF8Encoding($false)
-  $files = @(Get-ChildItem "$DS\*" -File -Include *.md, *.json, *.py, *.cmd, *.txt) + @(Get-Item "$H\.local\bin\claude-ds.cmd", "$H\.local\bin\deepseek.cmd", "$H\.local\bin\deepseek-update.cmd", "$H\.local\bin\peak.cmd" -ErrorAction SilentlyContinue) + @(Get-ChildItem "$H\.claude\skills", "$H\.claude\agents" -Recurse -File -ErrorAction SilentlyContinue)
+  $files = @(Get-ChildItem "$DS\*" -File -Include *.md, *.json, *.py, *.cmd, *.txt) + @(Get-Item "$H\.local\bin\claude-ds.cmd", "$H\.local\bin\deepseek.cmd", "$H\.local\bin\deepseek-update.cmd", "$H\.local\bin\deepseek-restore.cmd", "$H\.local\bin\peak.cmd" -ErrorAction SilentlyContinue) + @(Get-ChildItem "$H\.claude\skills", "$H\.claude\agents", "$H\.claude\commands" -Recurse -File -ErrorAction SilentlyContinue)
   foreach ($f in $files) {
     $t = [IO.File]::ReadAllText($f.FullName)
     if ($t -match '__HOME(BS|FS)__') { [IO.File]::WriteAllText($f.FullName, $t.Replace('__HOMEBS__', $hb).Replace('__HOMEFS__', $hf), $utf8) }
