@@ -1,0 +1,165 @@
+{
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch",
+      "ToolSearch",
+      "mcp__playwright",
+      "mcp__context7",
+      "mcp__codegraph",
+      "mcp__chrome__browser_navigate",
+      "mcp__chrome__browser_snapshot",
+      "mcp__chrome__browser_tabs",
+      "mcp__chrome__browser_take_screenshot",
+      "mcp__chrome__browser_wait_for",
+      "mcp__chrome__browser_find",
+      "mcp__chrome__browser_console_messages",
+      "mcp__chrome__browser_network_requests",
+      "mcp__chrome__browser_network_request"
+    ],
+    "ask": [
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)",
+      "Bash(rm -fr *)",
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Bash(git checkout -- *)",
+      "Bash(del *)",
+      "Bash(rmdir *)",
+      "Bash(rd *)",
+      "Bash(format *)",
+      "Bash(reg *)",
+      "Bash(shutdown *)",
+      "Bash(taskkill *)",
+      "Bash(powershell *Remove-Item*)",
+      "Bash(npm publish *)",
+      "PowerShell(Remove-Item *)",
+      "PowerShell(rm *)",
+      "PowerShell(del *)",
+      "PowerShell(rd *)",
+      "PowerShell(rmdir *)",
+      "PowerShell(Clear-Content *)",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(Stop-Service *)",
+      "PowerShell(Set-Service *)",
+      "PowerShell(Format-Volume *)",
+      "PowerShell(Remove-ItemProperty *)",
+      "PowerShell(Set-ItemProperty *)",
+      "PowerShell(reg *)",
+      "PowerShell(git push *)",
+      "PowerShell(git reset --hard *)",
+      "PowerShell(git clean *)",
+      "PowerShell(shutdown *)",
+      "PowerShell(Restart-Computer *)",
+      "Edit(~/.claude/settings.json)",
+      "Edit(~/.claude/settings.local.json)",
+      "Edit(~/.claude.json)",
+      "Edit(~/.claude/CLAUDE.md)",
+      "Edit(~/.claude/RTK.md)",
+      "Edit(~/.claude/skills/**)",
+      "Edit(~/.local/bin/*.cmd)",
+      "Edit(~/Tools/DeepSeek/*.py)",
+      "Edit(~/Tools/DeepSeek/*.cmd)",
+      "Edit(~/Tools/DeepSeek/*.json)",
+      "Edit(~/Tools/DeepSeek/deepseek-mode.md)",
+      "Edit(~/Tools/DeepSeek/dsmode/guard_canary.txt)"
+    ]
+  },
+  "effortLevel": "high",
+  "statusLine": {
+    "type": "command",
+    "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_statusline.py",
+    "padding": 0,
+    "refreshInterval": 10
+  },
+  "modelPicker": {
+    "replaceBuiltInOptions": true,
+    "options": [
+      {
+        "model": "deepseek-flash[1m]",
+        "label": "DeepSeek Flash",
+        "description": "V4.1 Flash - smartest + cheapest, use this ($0.30 in / $1.20 out per M)",
+        "behavesAs": "claude-sonnet-4-6"
+      },
+      {
+        "model": "deepseek-v4-pro[1m]",
+        "label": "DeepSeek V4 Pro",
+        "description": "Bigger but scores LOWER than Flash, 4x price ($1.32 / $3.96 per M)",
+        "behavesAs": "claude-opus-4-8"
+      }
+    ]
+  },
+  "spinnerTipsOverride": {
+    "excludeDefault": true,
+    "tips": [
+      "DeepSeek mode: /model switches between DeepSeek Flash and V4 Pro",
+      "Use /effort max for hard bugs, low for quick questions",
+      "The status line shows real spend from your DeepSeek balance",
+      "Deletes, git push/reset and Claude config edits always ask you first",
+      "DeepSeek setup problems are logged in Tools/DeepSeek/dsmode/issues.md",
+      "Normal claude is untouched: type claude to go back"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_guard.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_budget.py prompt",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_peak.py --alert",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_update_check.py --hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_budget.py session-start",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_peak.py --alert",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_update_check.py --hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "autoMemoryDirectory": "~/.claude/deepseek-memory"
+}

@@ -1,0 +1,41 @@
+{
+  "mcpServers": {
+    "chrome": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@playwright/mcp@latest",
+        "--extension",
+        "--caps",
+        "vision,pdf,devtools",
+        "--console-level",
+        "info",
+        "--output-dir",
+        "__HOMEFS__/Tools/DeepSeek/dsmode/chrome-out"
+      ]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@upstash/context7-mcp"
+      ]
+    }
+  }
+}
