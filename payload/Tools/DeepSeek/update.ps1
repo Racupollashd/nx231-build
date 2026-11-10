@@ -32,7 +32,10 @@ New-Item -ItemType Directory -Force $tmp | Out-Null
 try {
   if ($SourceDir) { $src = $SourceDir } else {
     Say "Downloading the latest DeepSeek Kit ..."
-    Invoke-WebRequest "https://github.com/$Repo/archive/refs/heads/main.zip" -OutFile "$tmp\kit.zip" -UseBasicParsing
+    # exact newest commit (avoids GitHub's few-minute cache of "main"); falls back to main
+    $ref = 'refs/heads/main'
+    try { $ref = (Invoke-RestMethod "https://api.github.com/repos/$Repo/commits/main" -Headers @{ 'User-Agent' = 'deepseek-kit' } -TimeoutSec 10).sha } catch {}
+    Invoke-WebRequest "https://github.com/$Repo/archive/$ref.zip" -OutFile "$tmp\kit.zip" -UseBasicParsing
     Expand-Archive "$tmp\kit.zip" "$tmp\x" -Force
     $src = (Get-ChildItem "$tmp\x" -Directory | Select-Object -First 1).FullName
   }

@@ -22,9 +22,17 @@ def local_version():
 
 
 def remote_version():
-    req = urllib.request.Request(RAW + "VERSION?t=" + str(int(time.time())), headers={"User-Agent": "deepseek-kit"})
-    with urllib.request.urlopen(req, timeout=3) as r:
-        return r.read().decode().strip()
+    """GitHub API first (fresh within ~1 min); raw file as fallback (can be ~5 min stale)."""
+    try:
+        import base64
+        req = urllib.request.Request(f"https://api.github.com/repos/{REPO}/contents/VERSION?ref=main",
+                                     headers={"User-Agent": "deepseek-kit", "Accept": "application/vnd.github+json"})
+        with urllib.request.urlopen(req, timeout=3) as r:
+            return base64.b64decode(json.load(r)["content"]).decode().strip()
+    except Exception:
+        req = urllib.request.Request(RAW + "VERSION", headers={"User-Agent": "deepseek-kit"})
+        with urllib.request.urlopen(req, timeout=3) as r:
+            return r.read().decode().strip()
 
 
 def newer(a, b):
