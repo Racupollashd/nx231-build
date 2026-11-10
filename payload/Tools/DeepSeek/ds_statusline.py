@@ -119,6 +119,11 @@ def balance():
             pass
         return b, False
     except Exception:
+        try:  # offline: keep the old value and wait 60 s before trying again
+            with open(f, "w") as fh:
+                json.dump({"t": time.time() + 40, "b": c["b"] if c else None}, fh)
+        except Exception:
+            pass
         return (c["b"], True) if c else (None, True)
 
 

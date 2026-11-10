@@ -25,8 +25,16 @@ function Save-KitBackup($H, $ver, $why) {
   return $bk
 }
 
+function Restore-KitBackup($H, $bk) {
+  $DS = "$H\Tools\DeepSeek"
+  Copy-Item "$bk\ds\*" $DS -Force -ErrorAction SilentlyContinue
+  Copy-Item "$bk\bin\*" "$H\.local\bin" -Force -ErrorAction SilentlyContinue
+  if (Test-Path "$bk\claude") { Copy-Item "$bk\claude\*" "$H\.claude" -Recurse -Force -ErrorAction SilentlyContinue }
+}
+
 if (Test-Path "$DS\kits\kitsrc") { Say "This is the source PC; updates are published from here, not installed." Yellow; return }
 [Net.ServicePointManager]::SecurityProtocol = 'Tls12'
+$bk = $null
 $tmp = Join-Path $env:TEMP ("dskit-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
 New-Item -ItemType Directory -Force $tmp | Out-Null
 try {
@@ -67,12 +75,26 @@ try {
   try { python -m pip install --user --quiet --disable-pip-version-check tzdata 2>&1 | Out-Null } catch {}
 
   $ErrorActionPreference = 'Continue'
+  # health check; anything wrong -> put the previous version back automatically
   $r = cmd /c "cd /d `"$DS`" && python dsk_selftest.py 2>&1" | Select-Object -Last 1
   Say "  self-test: $r" Gray
+  $problems = @()
+  if ("$r" -notmatch 'passed' -or "$r" -match 'FAIL') { $problems += "self-test: $r" }
+  if (((Get-Content "$DS\VERSION" -Raw -ErrorAction SilentlyContinue) + '').Trim() -ne $new) { $problems += 'version file not updated' }
+  foreach ($chk in @('ds_peak.py --short', 'ds_budget.py status', 'ds_statusline.py')) {
+    $null = cmd /c "cd /d `"$DS`" && echo {} | python -I $chk >nul 2>nul"
+    if ($LASTEXITCODE -ne 0) { $problems += "$chk failed" }
+  }
+  if ($problems) {
+    Restore-KitBackup $H $bk
+    Say "Update to $new had a problem ($($problems -join '; ')). Your previous version $cur was put back automatically. Nothing else changed." Yellow
+    return
+  }
   Say "Updated to $new. Backup of the old files: $bk" Green
   if (Test-Path "$src\CHANGELOG.md") { Say "`nWhat's new:" White; Get-Content "$src\CHANGELOG.md" | Select-Object -First 12 | ForEach-Object { Say "  $_" Gray } }
 } catch {
-  Say "Update failed: $($_.Exception.Message). Nothing was changed if it failed before 'Updating'." Red
+  if ($bk) { Restore-KitBackup $H $bk; Say "Update failed: $($_.Exception.Message). Your previous version was put back automatically." Red }
+  else { Say "Update failed: $($_.Exception.Message). Nothing was changed." Red }
 } finally {
   Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
 }

@@ -60,7 +60,13 @@ def main():
     else:
         try:
             rv = remote_version()
-        except Exception:
+        except Exception:                          # offline: don't retry until the next 10-min window
+            st["t"] = time.time()
+            try:
+                os.makedirs(os.path.dirname(STATE), exist_ok=True)
+                json.dump(st, open(STATE, "w", encoding="utf-8"))
+            except Exception:
+                pass
             return
         st.update({"t": time.time(), "remote": rv})
         os.makedirs(os.path.dirname(STATE), exist_ok=True)

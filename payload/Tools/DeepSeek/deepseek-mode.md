@@ -62,7 +62,7 @@ The same browser rules apply as for Claude:
 
 - Every token is paid from the user's DeepSeek balance; the status line shows it.
 - Prices: Flash costs $0.30 per million input tokens, $1.20 per million output tokens, and $0.006 per million cached input tokens. These are the peak prices. Peak hours are 01:00–04:00 and 06:00–10:00 UTC, Monday to Friday, except Chinese public holidays (list in `ds_holidays.json`); outside those hours everything is half price. `peak` (or `python ds_peak.py`) shows the live state; the status line shows it too. The status line balance is the ground truth.
-- `dsk.cmd` and this session bill the same balance. The "$5 cap" in memory only limits dsk's own ledger.
+- `dsk.cmd` and this session bill the same balance. The monthly cap (`ds_budget.py`) counts BOTH: dsk's ledger plus every deepseek-mode message on this PC. Other people on the same key don't count toward it. `dsk.cmd status` shows the numbers.
 - Before a job likely to use more than about 50k tokens, glance at the balance. If it is under $1, tell him before starting.
 - Errors: 402 means insufficient balance (tell him to top up), 401 means a bad key, 429 means rate limited (wait a bit, then retry once). Never retry in a loop.
 - `/effort` is sent to DeepSeek (low, high, max). Default is high. A balance-checked test (2026-11-06) found max costs ~20% more with the same answers. Effort is applied at the start of the conversation, so prefer setting it before the task rather than mid-session.

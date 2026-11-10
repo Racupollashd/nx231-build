@@ -1,3 +1,4 @@
+2026.11.10.5: Faster when offline, auto-rollback if an update ever fails, correct peak hours in every time zone
 2026.11.10.4: Memory fix: DeepSeek now finds its saved memory files correctly
 2026.11.10.3: Updates show up right away (no GitHub cache delay)
 2026.11.10.2: New commands: /updatedeepseek installs the newest version, /backup goes back to the previous one (every update is backed up)

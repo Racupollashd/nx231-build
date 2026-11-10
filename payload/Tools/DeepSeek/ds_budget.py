@@ -89,12 +89,19 @@ def cached_spend(path=STATE):
 def account():
     """(spend, balance) using the cached reading if it is < TTL old."""
     st = jload(STATE, None)
-    if not (st and st.get("month") == month() and time.time() - st.get("t", 0) < TTL):
+    fresh = st and st.get("month") == month() and time.time() - st.get("t", 0) < TTL
+    failed_recently = st and time.time() - st.get("fail_t", 0) < 60      # offline: don't retry every prompt
+    if not fresh and not failed_recently:
         try:
             st = update(fetch_balance())
         except Exception:
-            if not st or st.get("month") != month():
-                return None, None
+            if st:
+                st["fail_t"] = time.time()
+                jsave(STATE, st)
+            else:
+                jsave(STATE, {"fail_t": time.time()})
+    if not st or st.get("month") != month() or "last" not in st:
+        return None, None
     return max(0.0, st["start"] - st["last"]), st["last"]
 
 
@@ -164,7 +171,11 @@ def deepseek_mode_spend():
 def dsk_spend():
     m, settled, res = month(), {}, {}
     try:
-        for line in open(LEDGER, encoding="utf-8"):
+        lines = open(LEDGER, encoding="utf-8", errors="replace").read().splitlines()
+    except OSError:
+        lines = []
+    for line in lines:
+        try:                                   # one broken line (crash mid-write) must not hide the rest
             e = json.loads(line)
             if e.get("month") != m:
                 continue
@@ -172,8 +183,8 @@ def dsk_spend():
                 settled[e["id"]] = e["usd"]
             elif e["kind"] == "reserve" and time.time() - e["ts"] < 900:
                 res[e["id"]] = e["usd"]
-    except Exception:
-        pass
+        except Exception:
+            continue
     return sum(settled.values()) + sum(v for k, v in res.items() if k not in settled)
 
 
@@ -206,9 +217,8 @@ def verdict(once_a_day=True):
     today = time.strftime("%Y-%m-%d")
     if once_a_day and st.get("warned") == today:
         return "ok", line
-    if st:
-        st["warned"] = today
-        jsave(STATE, st)
+    st["warned"] = today                       # saved even when there is no state yet (offline first run)
+    jsave(STATE, st)
     return "warn", line + ": " + "; ".join(msgs)
 
 

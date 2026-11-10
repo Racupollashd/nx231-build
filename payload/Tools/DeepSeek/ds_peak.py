@@ -104,7 +104,13 @@ def _ip_timezone():
                 return tz, place
         except Exception:
             continue
-    return (c.get("tz"), c.get("place")) if c else (None, None)
+    # offline: remember the failure for 5 min so the status bar doesn't wait 4 s on every refresh
+    tz, place = (c.get("tz"), c.get("place")) if c else (None, None)
+    try:
+        json.dump({"t": time.time() - TZ_TTL + 300, "tz": tz, "place": place}, open(TZ_CACHE, "w", encoding="utf-8"))
+    except Exception:
+        pass
+    return tz, place
 
 
 def zone():
@@ -128,13 +134,13 @@ def zone():
     return None, "PC clock"
 
 
-_zone = None
+_zone, _zone_t = None, 0.0
 
 
 def local(t):
-    global _zone
-    if _zone is None:
-        _zone = zone()
+    global _zone, _zone_t
+    if _zone is None or time.time() - _zone_t > 300:     # long-running --watch picks up a new country
+        _zone, _zone_t = zone(), time.time()
     return t.astimezone(_zone[0]) if _zone[0] else t.astimezone()
 
 
@@ -213,13 +219,21 @@ def alert(t=None):
 
 
 def today_windows(t=None):
+    """Peak spans that fall inside YOUR local calendar day (00:00-24:00 where you are)."""
     t = t or datetime.now(timezone.utc)
-    day = t.astimezone(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    out = []
-    for a, b in WINDOWS:
-        s = day.replace(hour=a)
-        if is_peak(s):
-            out.append(f"{local(s):%H:%M}-{local(day.replace(hour=b)):%H:%M}")
+    lt = local(t)
+    start = lt.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc)
+    end = start + timedelta(days=1)
+    out, run_s = [], None
+    h = start.replace(minute=0)                      # walk whole UTC hours across the local day
+    while h < end + timedelta(hours=1):
+        p = start <= h < end and is_peak(h)
+        if p and run_s is None:
+            run_s = max(h, start)
+        if not p and run_s is not None:
+            out.append(f"{local(run_s):%H:%M}-{local(min(h, end)):%H:%M}".replace("-00:00", "-24:00"))
+            run_s = None
+        h += timedelta(hours=1)
     return out
 
 
