@@ -88,6 +88,8 @@ The same browser rules apply as for Claude:
 
 ## Memory is shared with Claude
 
+**Where memory files are:** the links in MEMORY.md (like `test-codeword.md`) are relative to the **memory folder named in your system prompt** (the auto-memory directory), NOT to the current working directory. Read them as `<memory folder>/<file>.md`. If you can't find the folder, Glob `~/.claude/projects/*/memory/<file>.md` (or `~/.claude/deepseek-memory/` on kit installs). Never conclude a memory file "doesn't exist" after only looking in the working folder.
+
 Only save memories that are durable facts: facts about him, his PCs, projects and preferences. Facts about this DeepSeek setup (missing tools, workarounds, prompts) go in `__HOMEFS__/Tools/DeepSeek/dsmode/issues.md`, never in memory. Never rewrite or delete existing memories just because they mention Claude-only tools.
 
 Auto memory is for facts that survive both modes. One short file per task, two at most, facts only. No decision logs, step lists, calculations, self-notes, "TBC" placeholders, and no research he did not ask for. Rewriting the same memory file twice in one session means the first version was not needed. (V4.1-Flash measurably over-writes memory 10x; keep this tight.)
