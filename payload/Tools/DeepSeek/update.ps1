@@ -81,7 +81,7 @@ try {
   $problems = @()
   if ("$r" -notmatch 'passed' -or "$r" -match 'FAIL') { $problems += "self-test: $r" }
   if (((Get-Content "$DS\VERSION" -Raw -ErrorAction SilentlyContinue) + '').Trim() -ne $new) { $problems += 'version file not updated' }
-  foreach ($chk in @('ds_peak.py --short', 'ds_budget.py status', 'ds_statusline.py')) {
+  foreach ($chk in @('ds_peak.py --short', 'ds_budget.py status', 'ds_statusline.py', 'ds_explain.py')) {
     $null = cmd /c "cd /d `"$DS`" && echo {} | python -I $chk >nul 2>nul"
     if ($LASTEXITCODE -ne 0) { $problems += "$chk failed" }
   }

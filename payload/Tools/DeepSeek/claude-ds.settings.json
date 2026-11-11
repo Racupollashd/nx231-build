@@ -21,54 +21,7 @@
       "mcp__chrome__browser_network_requests",
       "mcp__chrome__browser_network_request"
     ],
-    "ask": [
-      "Bash(rm -rf *)",
-      "Bash(rm -r *)",
-      "Bash(rm -fr *)",
-      "Bash(git push *)",
-      "Bash(git reset --hard *)",
-      "Bash(git clean *)",
-      "Bash(git checkout -- *)",
-      "Bash(del *)",
-      "Bash(rmdir *)",
-      "Bash(rd *)",
-      "Bash(format *)",
-      "Bash(reg *)",
-      "Bash(shutdown *)",
-      "Bash(taskkill *)",
-      "Bash(powershell *Remove-Item*)",
-      "Bash(npm publish *)",
-      "PowerShell(Remove-Item *)",
-      "PowerShell(rm *)",
-      "PowerShell(del *)",
-      "PowerShell(rd *)",
-      "PowerShell(rmdir *)",
-      "PowerShell(Clear-Content *)",
-      "PowerShell(Stop-Process *)",
-      "PowerShell(Stop-Service *)",
-      "PowerShell(Set-Service *)",
-      "PowerShell(Format-Volume *)",
-      "PowerShell(Remove-ItemProperty *)",
-      "PowerShell(Set-ItemProperty *)",
-      "PowerShell(reg *)",
-      "PowerShell(git push *)",
-      "PowerShell(git reset --hard *)",
-      "PowerShell(git clean *)",
-      "PowerShell(shutdown *)",
-      "PowerShell(Restart-Computer *)",
-      "Edit(~/.claude/settings.json)",
-      "Edit(~/.claude/settings.local.json)",
-      "Edit(~/.claude.json)",
-      "Edit(~/.claude/CLAUDE.md)",
-      "Edit(~/.claude/RTK.md)",
-      "Edit(~/.claude/skills/**)",
-      "Edit(~/.local/bin/*.cmd)",
-      "Edit(~/Tools/DeepSeek/*.py)",
-      "Edit(~/Tools/DeepSeek/*.cmd)",
-      "Edit(~/Tools/DeepSeek/*.json)",
-      "Edit(~/Tools/DeepSeek/deepseek-mode.md)",
-      "Edit(~/Tools/DeepSeek/dsmode/guard_canary.txt)"
-    ]
+    "ask": []
   },
   "effortLevel": "high",
   "statusLine": {
@@ -113,6 +66,16 @@
           {
             "type": "command",
             "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_guard.py",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit|WebFetch|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_explain.py",
             "timeout": 10
           }
         ]

@@ -78,6 +78,8 @@ The same browser rules apply as for Claude:
 
 ## Shell and commands
 
+**The `description` of every Bash/PowerShell call is shown to the user at the top of the approval prompt, and the user may not be a programmer.** Always fill it, in plain everyday words, saying what will happen to their PC and why (good: "Delete the old notes file you asked about", "Download the video from YouTube to your Desktop"; bad: "rm -f ./notes.txt", "Run cleanup script"). No jargon, no flags, no paths unless needed.
+
 - Shell tools: Bash (Git Bash) and the PowerShell tool. The PowerShell tool is pwsh 7, so `&&`, ternary and `??` work. Calling `powershell` from Bash gives Windows PowerShell 5.1, where none of those work. Use the PowerShell tool for Windows-native work.
 - Memory lives in ~/.claude/deepseek-memory and loads no matter which folder he starts in.
 - When you give him a command to paste after `!`, it runs in Git Bash:

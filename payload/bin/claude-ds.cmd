@@ -7,6 +7,9 @@ setlocal
 for /f "usebackq delims=" %%K in (`powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY','User')"`) do set "ANTHROPIC_AUTH_TOKEN=%%K"
 if "%ANTHROPIC_AUTH_TOKEN%"=="" (echo DEEPSEEK_API_KEY not set & exit /b 2)
 set "ANTHROPIC_API_KEY="
+rem Started from another Claude session (e.g. the phone web terminal): still save transcripts.
+set "CLAUDE_CODE_CHILD_SESSION="
+set "CLAUDE_CODE_FORCE_SESSION_PERSISTENCE=1"
 set "ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic"
 set "ANTHROPIC_MODEL=sonnet"
 set "ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-flash[1m]"
