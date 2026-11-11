@@ -44,7 +44,9 @@ try {
     $ref = 'refs/heads/main'
     try { $ref = (Invoke-RestMethod "https://api.github.com/repos/$Repo/commits/main" -Headers @{ 'User-Agent' = 'deepseek-kit' } -TimeoutSec 10).sha } catch {}
     Invoke-WebRequest "https://github.com/$Repo/archive/$ref.zip" -OutFile "$tmp\kit.zip" -UseBasicParsing
-    Expand-Archive "$tmp\kit.zip" "$tmp\x" -Force
+    # plain .NET unzip: Expand-Archive breaks when Windows PowerShell inherits PowerShell 7's module path
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [IO.Compression.ZipFile]::ExtractToDirectory("$tmp\kit.zip", "$tmp\x")
     $src = (Get-ChildItem "$tmp\x" -Directory | Select-Object -First 1).FullName
   }
   $new = (Get-Content "$src\VERSION" -Raw).Trim()

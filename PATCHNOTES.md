@@ -1,3 +1,7 @@
+PATCH 2026.11.11.4
+FIXES
+* Updates no longer fail on PCs that use the newer PowerShell 7.
+
 PATCH 2026.11.11.3
 NEW
 + Patch notes like these show up inside DeepSeek after every update.

@@ -1,3 +1,4 @@
+2026.11.11.4: Fix: updates failed on PCs using PowerShell 7 (unzip step)
 2026.11.11.3: Patch notes show inside DeepSeek after every update
 2026.11.11.2: Updates now install by themselves when you open deepseek (backup + auto-rollback stay)
 2026.11.11.1: Approval prompts now explain in plain words what DeepSeek wants to do (delete, install, close a program, click in Chrome...), and deleting a single file now always asks first

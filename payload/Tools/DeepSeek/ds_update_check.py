@@ -96,7 +96,9 @@ def main():
     if mode in ("--auto", "--now"):
         print(f"Installing DeepSeek Kit {rv} (about 20 s)...", flush=True)
         ps = os.path.join(HERE, "update.ps1")
-        subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps], timeout=300)
+        env = dict(os.environ)
+        env.pop("PSModulePath", None)          # don't let PowerShell 7's modules leak into Windows PowerShell
+        subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps], timeout=300, env=env)
         st["t"] = 0
         json.dump(st, open(STATE, "w", encoding="utf-8"))
     else:
