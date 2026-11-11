@@ -107,6 +107,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_patchnotes.py --hook",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "python -I __HOMEFS__/Tools/DeepSeek/ds_budget.py session-start",
             "timeout": 10
           },

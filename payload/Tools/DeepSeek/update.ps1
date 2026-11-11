@@ -92,6 +92,8 @@ try {
   }
   Say "Updated to $new. Backup of the old files: $bk" Green
   if (Test-Path "$src\CHANGELOG.md") { Say "`nWhat's new:" White; Get-Content "$src\CHANGELOG.md" | Select-Object -First 12 | ForEach-Object { Say "  $_" Gray } }
+  # patch notes for every version between the old and new one; shown once inside DeepSeek at the next start
+  if (Test-Path "$src\PATCHNOTES.md") { $null = cmd /c "python -I `"$DS\ds_patchnotes.py`" --extract `"$cur`" `"$new`" `"$src\PATCHNOTES.md`" 2>nul" }
 } catch {
   if ($bk) { Restore-KitBackup $H $bk; Say "Update failed: $($_.Exception.Message). Your previous version was put back automatically." Red }
   else { Say "Update failed: $($_.Exception.Message). Nothing was changed." Red }
