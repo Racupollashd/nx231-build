@@ -1,6 +1,6 @@
 """DeepSeek Kit auto-updater check (runs on kit installs; does nothing on the source PC).
 
-  python ds_update_check.py --auto   (launcher) if a newer kit version exists, show what changed and ASK to install
+  python ds_update_check.py --auto   (launcher) if a newer kit version exists, show what changed and install it (DS_UPDATE_ASK=1 to ask first)
   python ds_update_check.py --hook   (SessionStart / prompt hook) tells the user an update is waiting
   python ds_update_check.py --now    (deepseek-update) install right away, no question
 Checks at most every 10 minutes, 3-second timeout, never blocks the launch on errors.
@@ -82,16 +82,17 @@ def main():
             news = [l for l in news if not newer(lv, l.split(":")[0].strip()) and l.split(":")[0].strip() != lv][:6]
         except Exception:
             news = []
-        print(f"\n  DeepSeek Kit update available: {lv} -> {rv}")
+        print(f"\n  Updating DeepSeek Kit {lv} -> {rv}. What's new:")
         for l in news:
             print("   - " + l)
-        try:
-            ans = input("  Install it now? [Y/n] ").strip().lower()
-        except EOFError:
-            ans = "n"
-        if ans not in ("", "y", "yes", "s", "si"):
-            print("  Skipped. It will ask again next time (or run: deepseek-update).\n")
-            return
+        if os.environ.get("DS_UPDATE_ASK") == "1":   # optional: set this env var to be asked first
+            try:
+                ans = input("  Install it now? [Y/n] ").strip().lower()
+            except EOFError:
+                ans = "n"
+            if ans not in ("", "y", "yes", "s", "si"):
+                print("  Skipped. It will ask again next time (or run: deepseek-update).\n")
+                return
     if mode in ("--auto", "--now"):
         print(f"Installing DeepSeek Kit {rv} (about 20 s)...", flush=True)
         ps = os.path.join(HERE, "update.ps1")
@@ -103,7 +104,7 @@ def main():
             return                                # say it once per version
         st["told"] = rv
         json.dump(st, open(STATE, "w", encoding="utf-8"))
-        print(json.dumps({"systemMessage": f"DeepSeek Kit update {rv} is ready (you have {lv}). Type /exit and start deepseek again to accept it, or run: deepseek-update"}))
+        print(json.dumps({"systemMessage": f"DeepSeek Kit update {rv} is ready (you have {lv}). It installs by itself the next time you start deepseek (or type /updatedeepseek now)"}))
 
 
 if __name__ == "__main__":
